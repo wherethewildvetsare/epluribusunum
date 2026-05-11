@@ -1,0 +1,321 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{background:#0e1821;color:#dde6ee;padding:36px 32px 44px;font-family:var(--font-sans)}
+.eyebrow{font-size:10px;letter-spacing:.14em;color:#4a7fa0;text-transform:uppercase;margin-bottom:8px}
+h1{font-size:24px;font-weight:500;line-height:1.2;margin-bottom:6px}
+.subtitle{font-size:13px;color:#7a9db8;line-height:1.6;margin-bottom:28px}
+.section-label{font-size:10px;letter-spacing:.1em;color:#4a7fa0;text-transform:uppercase;margin-bottom:10px;padding-top:4px}
+.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:26px}
+.mc{background:#13202d;border:0.5px solid #223040;border-radius:8px;padding:12px 14px}
+.mc-n{font-size:10px;color:#3a6880;font-weight:500;margin-bottom:5px}
+.mc-t{font-size:12px;font-weight:500;color:#b8d0e2;margin-bottom:4px}
+.mc-b{font-size:11px;color:#5a8098;line-height:1.5}
+.formula{background:#0a1420;border:0.5px solid #1a3048;border-radius:6px;padding:10px 14px;font-size:12px;color:#8ac8e8;font-family:var(--font-mono);margin-bottom:6px}
+.formula .label{color:#3a6880}
+.formula .eg{font-size:10px;color:#3a6880;margin-top:4px}
+.formula .eg span{color:#7ab8d8}
+.maps-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.map-card{background:#13202d;border:0.5px solid #223040;border-radius:10px;padding:14px}
+.map-head{font-size:12px;font-weight:500;color:#b8d0e2;margin-bottom:2px}
+.map-sub{font-size:10px;color:#4a7fa0;margin-bottom:10px}
+svg.choropleth{border-radius:6px;display:block;width:100%}
+.legend-row{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:#5a8098}
+.legend-swatch{width:9px;height:9px;border-radius:2px}
+.tooltip{position:absolute;background:#0a1420;border:0.5px solid #2a4860;border-radius:6px;padding:7px 10px;font-size:11px;color:#b8d0e2;pointer-events:none;display:none;z-index:10;white-space:nowrap}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px}
+.sc{background:#13202d;border:0.5px solid #223040;border-radius:8px;padding:10px 12px;text-align:center}
+.sc-val{font-size:20px;font-weight:500;margin-bottom:2px}
+.sc-lbl{font-size:10px;color:#4a7fa0;line-height:1.4}
+.red{color:#d96060}.blue{color:#4a9fd4}.amber{color:#c89040}.teal{color:#3ab890}
+.howto-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.hc{background:#13202d;border:0.5px solid #223040;border-radius:8px;padding:12px 14px}
+.hc-t{font-size:11px;font-weight:500;color:#b8d0e2;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.hc-b{font-size:11px;color:#5a8098;line-height:1.6}
+.step-num{background:#1a3048;color:#4a9fd4;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.code{background:#0a1420;border-radius:4px;padding:2px 5px;font-family:var(--font-mono);font-size:10px;color:#8ac8e8}
+.disclaimer{font-size:10px;color:#2a4860;line-height:1.5;border-top:0.5px solid #1a3040;padding-top:14px;margin-top:4px}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Community research · NC · Public data</div>
+  <h1>Mapping ICE enforcement risk<br>from Census data</h1>
+  <p class="subtitle">How we built a vulnerability model for Wake and Mecklenburg counties using publicly available ACS estimates, Census self-response rates, and community-reported sightings — and how to replicate it anywhere.</p>
+
+  <div class="section-label">Methodology — 3 steps</div>
+  <div class="method-grid">
+    <div class="mc"><div class="mc-n">Step 1</div><div class="mc-t">Build the dataset</div><div class="mc-b">Download ACS B05001 (citizenship by nativity × Hispanic/Latino) and 2020 Census self-response rates per tract. Merge on GEOID. Filter to your county.</div></div>
+    <div class="mc"><div class="mc-n">Step 2 — Mecklenburg</div><div class="mc-t">Dual-threshold filter</div><div class="mc-b">Flag tracts where <em>both</em> conditions are true: at-risk pop above 75th percentile <em>and</em> Census response rate below 55%. These are your Group A hotspots.</div></div>
+    <div class="mc"><div class="mc-n">Step 3 — Wake</div><div class="mc-t">Vulnerability score</div><div class="mc-b">Where dual-threshold returns nothing (risk is diffuse), compute a score per tract and rank. No hard cutoff needed — top 10 captures the upper tier.</div></div>
+  </div>
+
+  <div class="formula">
+    <span class="label">Vulnerability score</span> = (% at-risk) × (1 − Census response rate)
+    <div class="eg">Example: Tract 535.17 → 0.363 × (1 − 0.662) = <span>0.1227</span> &nbsp;·&nbsp; Tract 38.08 → 0.806 × (1 − 0.432) = <span>0.458</span> (Mecklenburg scale)</div>
+  </div>
+
+  <div class="section-label" style="margin-top:20px">Choropleth maps — hover tracts for detail</div>
+  <div class="maps-row">
+    <div class="map-card" style="position:relative">
+      <div class="map-head">Mecklenburg County</div>
+      <div class="map-sub">Group A hotspots — dual threshold: at-risk &gt;75th pct + response &lt;55%</div>
+      <div id="meck-tt" class="tooltip"></div>
+      <svg class="choropleth" viewBox="0 0 300 260" id="meck-svg"></svg>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-swatch" style="background:#8b1515"></div>80%+ at-risk</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#6b1212"></div>55–80%</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#4a1010"></div>43–55%</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#1a2e3a"></div>Low risk</div>
+      </div>
+    </div>
+    <div class="map-card" style="position:relative">
+      <div class="map-head">Wake County</div>
+      <div class="map-sub">Top 10 by vulnerability score — score = %at-risk × (1 − response rate)</div>
+      <div id="wake-tt" class="tooltip"></div>
+      <svg class="choropleth" viewBox="0 0 300 260" id="wake-svg"></svg>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-swatch" style="background:#1a4a78"></div>Score &gt;0.10</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#133860"></div>0.07–0.10</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#0d2848"></div>0.05–0.07</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#1a2e3a"></div>Not ranked</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Key numbers</div>
+  <div class="stats-grid">
+    <div class="sc"><div class="sc-val red">80.6%</div><div class="sc-lbl">Peak at-risk population<br>Mecklenburg tract 38.08</div></div>
+    <div class="sc"><div class="sc-val red">43.2%</div><div class="sc-lbl">Census response rate<br>tract 38.08 — lowest found</div></div>
+    <div class="sc"><div class="sc-val blue">0.1227</div><div class="sc-lbl">Top Wake score<br>tract 535.17</div></div>
+    <div class="sc"><div class="sc-val teal">58%</div><div class="sc-lbl">Threshold where tracts<br>consistently appear in sightings</div></div>
+  </div>
+
+  <div class="section-label">How to select polygons — step by step</div>
+  <div class="howto-grid">
+    <div class="hc">
+      <div class="hc-t"><div class="step-num">1</div>Get the ACS data</div>
+      <div class="hc-b">Go to <span class="code">data.census.gov</span> → search table <span class="code">B05001</span>. Filter by: Geography → Census Tracts → North Carolina → your county. Download as CSV. This gives you non-citizen count per tract.</div>
+    </div>
+    <div class="hc">
+      <div class="hc-t"><div class="step-num">2</div>Get self-response rates</div>
+      <div class="hc-b">Go to <span class="code">data.census.gov</span> → search table <span class="code">TSRR001</span>. Same geography filter. Column <span class="code">TSRR001_008</span> = Final Total Self-Response Rate. Download and merge on the tract GEOID.</div>
+    </div>
+    <div class="hc">
+      <div class="hc-t"><div class="step-num">3</div>Calculate % at-risk</div>
+      <div class="hc-b">Divide "Not a U.S. citizen" (Hispanic/Latino) by total tract population. This is your <span class="code">Pct_At_Risk</span>. The 75th percentile cutoff for Mecklenburg was ~43%; any tract above 43% AND with response &lt;55% = Group A.</div>
+    </div>
+    <div class="hc">
+      <div class="hc-t"><div class="step-num">4</div>Select the polygons</div>
+      <div class="hc-b">Open <span class="code">data.census.gov</span> → Maps tab. Layer: Census Tracts. Click a tract to see its GEOID. Or use <span class="code">TIGER/Line shapefiles</span> (Census website) in QGIS/ArcGIS — filter by your ranked tract list and export as GeoJSON for any mapping tool.</div>
+    </div>
+  </div>
+
+  <div class="section-label">What this enables</div>
+  <div class="method-grid" style="margin-bottom:24px">
+    <div class="mc"><div class="mc-t">Community outreach</div><div class="mc-b">Know-your-rights sessions, legal clinic staffing, and rapid-response networks can be prioritized to the exact tracts with highest combined exposure.</div></div>
+    <div class="mc"><div class="mc-t">Pattern insight</div><div class="mc-b">Reported enforcement events trace the outer boundaries of high-risk tracts. At-risk population above ~58% consistently correlates with community sighting reports.</div></div>
+    <div class="mc"><div class="mc-t">Replicable anywhere</div><div class="mc-b">Every county in the US has ACS B05001 and TSRR001 data. This exact methodology can be applied to any county — just swap the FIPS code in the Census download filter.</div></div>
+  </div>
+
+  <div class="disclaimer">All data from publicly available sources: ACS 5-Year Estimates (B05001), 2020 Census self-response rates (TSRR001), and community-reported sighting records. Polygon geometries are schematic approximations based on known tract centroids — not TIGER/Line boundaries. This study does not guarantee safety and is intended solely to inform community protection efforts. Small sample sizes and limited sighting duration may affect results.</div>
+</div>
+
+<script>
+const meckHR = {
+  '38.08': {pct:80.6, resp:43.2, pop:4481, total:5562},
+  '15.07': {pct:58.1, resp:49.3, pop:2540, total:4372},
+  '31.09': {pct:53.2, resp:46.6, pop:2170, total:4076},
+  '38.07': {pct:52.0, resp:54.1, pop:2378, total:4569},
+  '31.08': {pct:47.6, resp:54.2, pop:1535, total:3228},
+  '53.08': {pct:45.9, resp:38.8, pop:1426, total:3110},
+  '17.02': {pct:43.7, resp:52.9, pop:2665, total:6094},
+};
+const meckBG = {
+  'bg1':'143.8,61.2 131.9,98.0 97.7,78.3 99.2,70.7 116.2,47.1 137.5,49.6',
+  'bg2':'143.8,61.2 183.8,69.3 162.7,8.8 137.5,49.6',
+  'bg3':'164.7,107.2 184.4,85.2 213.5,102.0 204.2,139.6 200.4,140.2',
+  'bg4':'164.7,107.2 200.4,140.2 172.6,164.4 152.1,144.1 154.7,110.3',
+  'bg5':'127.0,154.6 118.7,174.0 134.9,188.1 142.3,190.4 171.9,174.1 172.6,164.4 152.1,144.1 129.5,150.2',
+  'bg6':'115.2,174.3 88.7,202.2 79.0,253.2 134.9,188.1 118.7,174.0',
+  'bg7':'84.4,129.5 71.8,120.9 80.2,88.4 97.7,78.3 131.9,98.0 133.1,100.7 112.5,124.2',
+  'bg8':'99.2,70.7 74.9,42.7 49.0,62.6 80.2,88.4 97.7,78.3',
+  'bg9':'0,140.4 0,56.6 49.0,62.6 80.2,88.4 71.8,120.9 0,141.0',
+  'bg10':'0,148.3 0,141.0 71.8,120.9 84.4,129.5 86.7,139.8 88.5,153.2 68.5,173.0 0,173.0',
+  'bg11':'62.8,260 79.0,253.2 88.7,202.2 80.0,185.6 68.5,173.0 0,173.0 0,260',
+  'bg12':'62.8,260 79.0,253.2 134.9,188.1 142.3,190.4 160.0,260',
+  'bg13':'160.0,260 184.1,187.2 296.2,213.3 296.2,260',
+  'bg14':'200.4,140.2 204.2,139.6 300,189.9 296.2,213.3 184.1,187.2 171.9,174.1 172.6,164.4',
+  'bg15':'300,79.4 300,189.9 204.2,139.6 213.5,102.0 300,70.0',
+  'bg16':'300,37.4 300,70.0 213.5,102.0 184.4,85.2 183.8,69.3 291.7,0',
+  'bg17':'183.8,69.2 291.7,0 162.7,8.8',
+  'bg18':'109.9,0 89.4,3.8 116.2,47.1 137.5,49.6 162.7,8.8 170.9,0',
+  'bg19':'116.2,47.1 89.4,3.8 74.9,42.7 99.2,70.7',
+  'bg20':'74.9,42.7 89.4,3.8 85.2,0 0,0 0,56.6 49.0,62.6',
+};
+const meckPts = {
+  '38.08':'88.5,153.2 68.5,173.0 80.0,185.6 99.0,163.5',
+  '15.07':'143.8,61.2 183.8,69.3 184.4,85.2 164.7,107.2 154.7,110.3 133.1,100.7 131.9,98.0',
+  '31.09':'86.7,139.8 88.5,153.2 99.0,163.5 115.2,174.3 118.7,174.0 127.0,154.6',
+  '38.07':'115.2,174.3 88.7,202.2 80.0,185.6 99.0,163.5',
+  '31.08':'86.7,139.8 127.0,154.6 129.5,150.2 112.5,124.2 84.4,129.5',
+  '53.08':'142.3,190.4 171.9,174.1 184.1,187.2 160.0,260',
+  '17.02':'112.5,124.2 133.1,100.7 154.7,110.3 152.1,144.1 129.5,150.2',
+};
+const wakeHR = {
+  '535.17': {score:0.1227, pct:36.3, resp:66.2, pop:1693},
+  '541.16': {score:0.0994, pct:29.7, resp:66.5, pop:1965},
+  '527.06': {score:0.0964, pct:28.0, resp:65.6, pop:1358},
+  '541.14': {score:0.0832, pct:35.1, resp:76.3, pop:2671},
+  '541.06': {score:0.0814, pct:24.7, resp:67.1, pop:2061},
+  '521.02': {score:0.0700, pct:22.1, resp:68.3, pop:1317},
+  '527.05': {score:0.0674, pct:23.6, resp:71.5, pop:1314},
+  '544.02': {score:0.0592, pct:26.0, resp:77.2, pop:2130},
+  '528.02': {score:0.0585, pct:23.6, resp:75.2, pop:1408},
+  '528.07': {score:0.0534, pct:16.6, resp:67.9, pop:1120},
+};
+const wakeBG = {
+  'bg1':'110.1,0 100.5,59.6 44.4,87.5 0,59.2 0,0',
+  'bg2':'129.7,0 110.1,0 100.5,59.6 118.3,95.1 128.5,97.6 154.5,82.9 179.1,24.3 182.7,0',
+  'bg3':'179.7,104.6 154.5,82.9 179.1,24.3 204.4,91.1 195.5,98.1',
+  'bg4':'246.0,128.3 300,74.6 300,47.6 214.3,93.4 222.9,120.6',
+  'bg5':'242.7,146.8 256.2,168.5 231.8,191.1 211.0,182.8 214.9,157.7',
+  'bg6':'264.4,260 231.8,191.1 211.0,182.8 192.6,190.9 267.3,260',
+  'bg7':'132.5,260 179.1,200.6 138.2,216.8 123.3,260',
+  'bg8':'100.5,260 50.1,260 91.2,199.3 120.1,190.1 138.2,216.8 123.3,260',
+  'bg9':'91.2,199.3 50.1,260 0,260 0,249.8 62.8,168.4 67.1,168.8',
+  'bg10':'0,160.5 0,249.8 62.8,168.4 47.9,146.6',
+  'bg11':'0,144.7 0,59.2 44.4,87.5 62.6,111.6 47.9,146.6 0,146.6',
+  'bg12':'118.3,95.1 100.5,59.6 44.4,87.5 62.6,111.6 89.9,117.7',
+  'bg13':'189.1,0 182.7,0 179.1,24.3 204.4,91.1 214.3,93.4 300,47.6 300,3.8',
+  'bg14':'300,144.7 300,74.6 246.0,128.3 242.7,146.8 256.2,168.5 300,184.0',
+  'bg15':'300,194.3 300,260 267.3,260 231.8,191.1 256.2,168.5 300,184.0',
+  'bg16':'218.6,260 192.6,190.9 183.2,192.7 179.1,200.6 206.9,260',
+  'bg17':'123.7,173.8 120.1,190.1 138.2,216.8 179.1,200.6 183.2,192.7 182.2,191.1 154.4,166.4 141.8,166.0',
+  'bg18':'113.4,161.1 120.1,190.1 91.2,199.3 67.1,168.8 98.0,149.0 104.7,152.4',
+  'bg19':'104.7,152.4 98.0,149.0 89.9,117.7 118.3,95.1 128.5,97.6 138.7,120.6',
+  'bg20':'206.3,130.5 195.5,98.1 204.4,91.1 214.3,93.4 222.9,120.6',
+};
+const wakePts = {
+  '535.17':'89.9,117.7 62.6,111.6 47.9,146.6 62.8,168.4 67.1,168.8 98.0,149.0',
+  '541.16':'199.1,138.7 179.2,107.4 179.7,104.6 195.5,98.1 206.3,130.5',
+  '527.06':'113.4,161.1 123.7,173.8 141.8,166.0 141.1,130.8',
+  '541.14':'199.1,138.7 179.2,107.4 162.0,129.4 169.7,141.8 186.9,144.5 198.9,139.4',
+  '541.06':'142.0,124.0 162.0,129.4 179.2,107.4 179.7,104.6 154.5,82.9 128.5,97.6 138.7,120.6',
+  '521.02':'141.1,130.8 141.8,166.0 154.4,166.4 169.7,141.8 162.0,129.4 142.0,124.0',
+  '527.05':'113.4,161.1 141.1,130.8 142.0,124.0 138.7,120.6 104.7,152.4',
+  '544.02':'199.1,138.7 206.3,130.5 222.9,120.6 246.0,128.3 242.7,146.8 214.9,157.7 198.9,139.4',
+  '528.02':'182.2,191.1 186.9,144.5 169.7,141.8 154.4,166.4',
+  '528.07':'183.2,192.7 182.2,191.1 186.9,144.5 198.9,139.4 214.9,157.7 211.0,182.8 192.6,190.9',
+};
+
+function meckColor(pct) {
+  if (pct >= 75) return '#8b1515';
+  if (pct >= 55) return '#6b1212';
+  return '#4a1010';
+}
+function wakeColor(score) {
+  if (score >= 0.10) return '#1a4a78';
+  if (score >= 0.07) return '#133860';
+  return '#0d2848';
+}
+
+function makePoly(svg, pts, fill, stroke, title, onEnter, onLeave, onClick) {
+  const p = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+  p.setAttribute('points', pts);
+  p.setAttribute('fill', fill);
+  p.setAttribute('stroke', stroke);
+  p.setAttribute('stroke-width', '0.5');
+  if (title) {
+    p.style.cursor = 'pointer';
+    p.addEventListener('mouseenter', onEnter);
+    p.addEventListener('mouseleave', onLeave);
+    if (onClick) p.addEventListener('click', onClick);
+  }
+  svg.appendChild(p);
+  return p;
+}
+
+function buildMeck() {
+  const svg = document.getElementById('meck-svg');
+  const tt = document.getElementById('meck-tt');
+  // Background tracts
+  for (const [id, pts] of Object.entries(meckBG)) {
+    makePoly(svg, pts, '#1a2e3a', '#0e1821', null, null, null, null);
+  }
+  // High-risk tracts
+  for (const [id, pts] of Object.entries(meckPts)) {
+    const d = meckHR[id];
+    const fill = meckColor(d.pct);
+    const p = makePoly(svg, pts, fill, '#cc3333',
+      `Tract ${id}`, 
+      (e) => {
+        p.setAttribute('fill', '#cc2222');
+        p.setAttribute('stroke-width','1');
+        tt.innerHTML = `<strong>Tract ${id}</strong><br>${d.pct.toFixed(1)}% at-risk · ${d.resp}% Census response<br>${d.pop.toLocaleString()} at-risk residents of ${d.total.toLocaleString()}`;
+        tt.style.display = 'block';
+        tt.style.top = (e.offsetY - 60) + 'px';
+        tt.style.left = (e.offsetX + 8) + 'px';
+      },
+      () => {
+        p.setAttribute('fill', fill);
+        p.setAttribute('stroke-width','0.5');
+        tt.style.display = 'none';
+      },
+      null
+    );
+    // Label
+    const pts_arr = pts.split(' ').map(s => s.split(',').map(Number));
+    const cx = pts_arr.reduce((a,b)=>a+b[0],0)/pts_arr.length;
+    const cy = pts_arr.reduce((a,b)=>a+b[1],0)/pts_arr.length;
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', cx); t.setAttribute('y', cy);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('dominant-baseline','central');
+    t.setAttribute('font-size','8'); t.setAttribute('fill','#ffaaaa');
+    t.setAttribute('font-family','var(--font-sans)'); t.setAttribute('pointer-events','none');
+    t.textContent = id;
+    svg.appendChild(t);
+  }
+}
+
+function buildWake() {
+  const svg = document.getElementById('wake-svg');
+  const tt = document.getElementById('wake-tt');
+  for (const [id, pts] of Object.entries(wakeBG)) {
+    makePoly(svg, pts, '#1a2e3a', '#0e1821', null, null, null, null);
+  }
+  for (const [id, pts] of Object.entries(wakePts)) {
+    const d = wakeHR[id];
+    const fill = wakeColor(d.score);
+    const p = makePoly(svg, pts, fill, '#2a7ab8',
+      `Tract ${id}`,
+      (e) => {
+        p.setAttribute('fill','#1f5c90');
+        p.setAttribute('stroke-width','1');
+        tt.innerHTML = `<strong>Tract ${id}</strong><br>Score: ${d.score.toFixed(4)} · ${d.pct.toFixed(1)}% at-risk<br>${d.resp}% Census response · ${d.pop.toLocaleString()} residents`;
+        tt.style.display = 'block';
+        tt.style.top = (e.offsetY - 60) + 'px';
+        tt.style.left = (e.offsetX + 8) + 'px';
+      },
+      () => {
+        p.setAttribute('fill', fill);
+        p.setAttribute('stroke-width','0.5');
+        tt.style.display = 'none';
+      },
+      null
+    );
+    const pts_arr = pts.split(' ').map(s => s.split(',').map(Number));
+    const cx = pts_arr.reduce((a,b)=>a+b[0],0)/pts_arr.length;
+    const cy = pts_arr.reduce((a,b)=>a+b[1],0)/pts_arr.length;
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', cx); t.setAttribute('y', cy);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('dominant-baseline','central');
+    t.setAttribute('font-size','8'); t.setAttribute('fill','#80c0f0');
+    t.setAttribute('font-family','var(--font-sans)'); t.setAttribute('pointer-events','none');
+    t.textContent = id;
+    svg.appendChild(t);
+  }
+}
+
+buildMeck(); buildWake();
+</script>
